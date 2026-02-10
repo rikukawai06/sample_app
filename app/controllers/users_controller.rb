@@ -4,6 +4,8 @@ class UsersController < ApplicationController
   before_action :admin_user,     only: :destroy
   def show
     @user = User.find(params[:id])
+    # デフォルトでは1ページにつき30件まで表示させる
+    # per_pageオブションを使えば1ページあたりの表示件数を変更できる例）per_page: 5
     @microposts = @user.microposts.paginate(page: params[:page])
   end
 
