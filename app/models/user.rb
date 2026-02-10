@@ -36,6 +36,9 @@ class User < ApplicationRecord
   validates :email, presence: true, length: { maximum: 255 },
                     format: { with: VALID_EMAIL_REGEX },
                     uniqueness: true
+  # パスワードに関するバリデーションを追加
+  # パスワードをDBに保存する前に自動でハッシュ化
+  # 新規ユーザー作成時はパスワードが空欄だとバリデーションが働くが.updateメソッドが呼ばれた際はパスワードが空欄でもバリデーションに引っかからないようになってる
   has_secure_password
   validates :password, presence: true, length: { minimum: 6 }, allow_nil: true
 
@@ -67,9 +70,8 @@ class User < ApplicationRecord
   end
 
   # セッションハイジャック防止のためにセッショントークンを返す
-  # この記憶ダイジェストを再利用しているのは単に利便性のため
+  # ログアウト、ブラウザを閉じた場合はセッショントークンが破棄されるのでセッションハイジャックを防げる可能性が上がる
   def session_token
-    raise
     remember_digest || remember
   end
 
