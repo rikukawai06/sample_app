@@ -1,4 +1,5 @@
 class UsersController < ApplicationController
+  # only:以下に記載されたアクションの実行前に流すメソッドの設定
   before_action :logged_in_user, only: [:index, :edit, :update, :destroy, :following, :followers]
   before_action :correct_user,   only: [:edit, :update]
   before_action :admin_user,     only: :destroy

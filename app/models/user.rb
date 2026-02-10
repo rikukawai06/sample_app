@@ -69,6 +69,7 @@ class User < ApplicationRecord
   # セッションハイジャック防止のためにセッショントークンを返す
   # この記憶ダイジェストを再利用しているのは単に利便性のため
   def session_token
+    raise
     remember_digest || remember
   end
 

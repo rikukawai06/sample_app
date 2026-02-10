@@ -15,13 +15,19 @@ module SessionsHelper
     cookies.permanent[:remember_token] = user.remember_token
   end
 
-  # 記憶トークンcookieに対応するユーザーを返す
+  # ログイン中のユーザーを取得
+  # 一時セッションか永続トークンどちらかを持っているかつそれらが正しいものなのかを判断してログインしているかいないか判断んしている
   def current_user
+    # 一時セッションに保存されているuser_idとログイン中のuser_idを比較
     if (user_id = session[:user_id])
       user = User.find_by(id: user_id)
+      # session内のidがDB内に存在するか？
+      # セッション内にトークンが存在するか？
+      # session内のトークンとDB内のトークンが存在するかつ一致するか？
       if user && session[:session_token] == user.session_token
         @current_user = user
       end
+    # 永続トークンでのログイン認証
     elsif (user_id = cookies.encrypted[:user_id])
       user = User.find_by(id: user_id)
       if user && user.authenticated?(:remember, cookies[:remember_token])
