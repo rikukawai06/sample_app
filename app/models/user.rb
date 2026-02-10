@@ -18,12 +18,20 @@ class User < ApplicationRecord
 
   has_many :followers, through: :passive_relationships, source: :follower
 
+  # 読）アトリビュートアクセサー
+  # これをつける事によって外部のクラスでも参照や値の変更を行うことが可能
   attr_accessor :remember_token, :activation_token, :reset_token
 
+  # proc版の書き方：before_save { self.email = email.downcase }
   before_save   :downcase_email
   before_create :create_activation_digest
-  before_save { self.email = email.downcase }
+
+  # nameのバリデーション
+  # presence: true：空白禁止
   validates :name,  presence: true, length: { maximum: 50 }
+
+  # emailのバリデーション
+  # uniqueness：
   VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
   validates :email, presence: true, length: { maximum: 255 },
                     format: { with: VALID_EMAIL_REGEX },
@@ -32,21 +40,29 @@ class User < ApplicationRecord
   validates :password, presence: true, length: { minimum: 6 }, allow_nil: true
 
   # 渡された文字列のハッシュ値を返す
-  def User.digest(string)
+  def self.digest(string)
+    # Bcryptの設定
+    # テスト環境ですか？
+    # true：テスト環境なら暗号化の計算量を最小にする
+    # false：標準の暗号化を施す
     cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST :
                                                   BCrypt::Engine.cost
+    # ハッシュ値の生成
     BCrypt::Password.create(string, cost: cost)
   end
 
   # ランダムなトークンを返す
-  def User.new_token
+  def self.new_token
     SecureRandom.urlsafe_base64
   end
 
-  # 永続的セッションのためにユーザーをデータベースに記憶する
+  # 永続的セッションのためにトークンをデータベースに記憶する
   def remember
+    # トークンを生成
     self.remember_token = User.new_token
+    # DBにハッシュ化したトークンを保存
     update_attribute(:remember_digest, User.digest(remember_token))
+    # session[:session_token]に入れるためにremember_digestを戻り値にしている
     remember_digest
   end
 
@@ -56,10 +72,13 @@ class User < ApplicationRecord
     remember_digest || remember
   end
 
+  # トークンを暗号化
   def authenticated?(attribute, token)
     # sendを使って動的に「activation_digest」や「remember_digest」を呼び出す
+    # DBから取得してきている
     digest = send("#{attribute}_digest")
     return false if digest.nil?
+    # DB内にあるハッシュ化されているトークン（鍵穴）と引数内のトークン（鍵）が一致するか
     BCrypt::Password.new(digest).is_password?(token)
   end
 
@@ -68,6 +87,7 @@ class User < ApplicationRecord
     update_attribute(:remember_digest, nil)
   end
 
+  # メールの内容を作って送信
   def send_activation_email
     UserMailer.account_activation(self).deliver_now
   end

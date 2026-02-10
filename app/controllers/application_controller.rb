@@ -1,4 +1,5 @@
 class ApplicationController < ActionController::Base
+  # コントローラー内であればsessionhelperに定義されたメソッドを呼び出せる
   include SessionsHelper
 
   private

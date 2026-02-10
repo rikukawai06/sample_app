@@ -16,13 +16,15 @@ class UsersController < ApplicationController
   end
 
   def create
+    # .newでメモリ上に新しいオブジェクトを作成する
     @user = User.new(user_params)
     if @user.save
-      # メールの内容を作って送信
       @user.send_activation_email
       flash[:info] = "Please check your email to activate your account."
       redirect_to root_url
     else
+      # ステータスコード422を返す
+      # status: :unprocessable_entityを記載しないとデフォルトで200OKを返す
       render 'new', status: :unprocessable_entity
     end
   end
