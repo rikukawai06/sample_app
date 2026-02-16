@@ -56,8 +56,11 @@ module SessionsHelper
 
   # 現在のユーザーをログアウトする
   def log_out
+    # 永続セッションの破棄
     forget(current_user) if logged_in?
+    # 一時セッションの破棄
     reset_session
+    # メモリ内のデータも破棄
     @current_user = nil
   end
 
